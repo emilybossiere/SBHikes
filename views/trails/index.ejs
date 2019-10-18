@@ -1,0 +1,48 @@
+<% include ../partials/header %>
+
+
+<div class="jumbotron">
+	<h1 class="display-4">Welcome To Santa Barbara Hikes!</h1>
+	<p class="lead">View our hand-picked trails in Santa Barbara</p>
+		<form action="/trails" method="GET" class="form-inline">
+			<div class="form-group">
+				<input type="search" name="search" placeholder="Search..." class="form-control">
+				<button id="search" class="btn btn-primary my-2 my-sm-0" type="submit">
+					Search
+				</button>
+			</div>
+		</form>
+
+
+
+	
+	<% if(currentUser && currentUser.isAdmin){ %>
+	<hr class="my-4">
+		<p> 
+			<a class="btn btn-primary btn-large" href="/trails/new">Add a New Trail</a>
+        </p>
+	<% } %>
+</div>
+
+<div class="row text-center" style="display:flex; flex-wrap: wrap;">
+	<div class="col-md-12">
+		<% if(noMatch !== null){ %>
+			<h3>
+				<%= noMatch %>
+			</h3>
+		<% } %>
+	</div>
+	<% trails.forEach(function(trail){ %>
+		<div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+			<div class="card">
+  				<img class="card-img-top" src="<%= trail.image %>" alt="<%= trail.name %>">
+  				<div class="card-body">
+					<h5 class="card-title"><%= trail.name %></h5>
+					<a href="/trails/<%= trail._id %>" class="btn btn-primary">More Info</a>
+  				</div>
+			</div>
+		</div>
+	<% }); %>
+</div>
+
+<% include ../partials/footer %>

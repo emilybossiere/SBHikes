@@ -1,0 +1,25 @@
+<% include ../partials/header %>
+
+	<div class="row justify-content-center">
+		<div class="col-md-12 text-center">
+			<h1>Add a New Review for <%= trail.name %></h1>
+		</div>
+		<div class="col-md-6 col-xs-8">
+			<form action="/trails/<%= trail._id %>/reviews" method="POST" enctype="multipart/form-data">
+				<div class="form-group">
+					<label for="review">Your Review</label>
+					<input class="form-control" type="text" name="review[text]" placeholder="text">
+				</div>
+				<div class="form-group">
+                    <label for="image">Image upload</label>
+                    <input type="file" id="image" name="image" accept="image/*">
+                </div>
+				<div class="form-group">
+					<button class="btn btn-lg btn-primary btn-block"> Submit </button>
+				</div>
+				<a href="/trails">Go Back</a>
+			</form>
+		</div>	
+	</div>
+
+<% include ../partials/footer %>

@@ -1,0 +1,65 @@
+<% include ../partials/header %>
+
+<div class="row justify-content-center">
+		
+
+	<div class="col-md-9">
+		<div class="card mb-3">
+  			<img class="card-img-top" src="<%= trail.image %>" alt="<%= trail.name %>">
+  			<div class="card-body">
+				<h5 class="card-title">More About <%= trail.name %></h5>
+				<p class="card-text"><%= trail.description %></p>
+				<p>
+					<strong>Elevation Gain:</strong> <%= trail.elevation %> feet
+				</p>
+				<p>
+					<strong>Round Trip Distance:</strong> <%= trail.distance %> miles
+				</p>
+				<p>
+					 <em>Submitted by: <a href="/users/<%= trail.author.id %>"><%= trail.author.username %></a>, <%= moment(trail.createdAt).fromNow() %> </em>
+				</p>
+				<% if(currentUser && currentUser.isAdmin){ %>
+					<a class="btn btn-warning" href="/trails/<%= trail._id %>/edit">Edit</a>
+					<form class="delete-form" action="/trails/<%= trail._id %>?_method=DELETE" method="POST">
+						<button class="btn btn-danger">
+							Delete
+						</button>
+					</form>
+				<% } %>
+  			</div>
+		</div>
+		
+		<div class="card mb-3">
+			<div class="card-body">
+				<div class="text-right">
+					<a class="btn btn-success" href="/trails/<%= trail._id %>/reviews/new">Add a Review</a>
+				</div>
+				<hr />
+				<% trail.reviews.forEach(function(review){ %>
+					<div class="row">
+						<div class="col-md-12">
+							<strong><a href="/users/<%= review.author.id %>"><%= review.author.username %></a> says...</strong>
+							<span class="float-right"><%= moment(review.createdAt).fromNow() %></span>
+							<p>
+								<%= review.text %>
+							</p>
+							<img class="img-thumbnail" id="review-img" src="<%= review.image %>">
+							<% if(currentUser && review.author.id.equals(currentUser._id) || currentUser && currentUser.isAdmin){ %>
+								<a class="btn btn-sm btn-warning" href="/trails/<%= trail._id %>/reviews/<%= review._id %>/edit">
+										Edit
+								</a>
+								<form class="delete-form" action="/trails/<%= trail._id %>/reviews/<%= review._id %>?_method=DELETE" method="POST">
+									<input type="submit" class="btn btn-sm btn-danger" value="Delete">
+								</form>
+							<% } %>
+							<hr />
+						</div>
+					</div>
+				<% }); %>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<% include ../partials/footer %>
