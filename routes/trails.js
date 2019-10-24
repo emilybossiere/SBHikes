@@ -1,9 +1,11 @@
 var express = require("express");
 var router = express.Router();
 var Trail = require("../models/trail");
+var Review = require("../models/review");
+var Comment = require("../models/comment");
 var middleware = require("../middleware/index");
-var multer = require('multer');
-var cloudinary = require('cloudinary');
+var multer = require("multer");
+var cloudinary = require("cloudinary");
 
 //
 var storage = multer.diskStorage({
@@ -12,160 +14,199 @@ var storage = multer.diskStorage({
   }
 });
 
-var imageFilter = function (req, file, cb) {
-    // accept image files only
-    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
-        return cb(new Error('Only image files may be uploaded'), false);
-    }
-    cb(null, true);
+var imageFilter = function(req, file, cb) {
+  // accept image files only
+  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
+    return cb(new Error("Only image files may be uploaded"), false);
+  }
+  cb(null, true);
 };
 
-var upload = multer({ storage: storage, fileFilter: imageFilter});
+var upload = multer({ storage: storage, fileFilter: imageFilter });
 
 //CLOUDINARY CONFIGURATION
-cloudinary.config({ 
-  cloud_name: 'daqc0ga76', 
-  api_key: 452294335971968, 
+cloudinary.config({
+  cloud_name: "daqc0ga76",
+  api_key: 452294335971968,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 //INDEX - display all hikes/search all hikes
-router.get("/", function(req, res){
-	var noMatch = null;
-	if(req.query.search){
-		const regex = new RegExp(escapeRegex(req.query.search), "gi");
-		Trail.find({name: regex}, function(err, allTrails){
-			if (err){
-				console.log(err);
-			} else {
-				if (allTrails.length < 1){
-					noMatch = "Sorry, no trails found :( please try search again";
-				}
-				//render that trail
-				res.render("trails/index", {trails: allTrails, page: "trails", noMatch: noMatch});
-			}
-		});
-	} else {
-	//get all trails from db
-		Trail.find({}, function(err, allTrails){
-			if (err){
-				console.log(err);
-			} else {
-				//render that file
-				res.render("trails/index", {trails: allTrails, page: "trails", noMatch: noMatch});
-			}
-		});
-	}
+router.get("/", function(req, res) {
+  var noMatch = null;
+  if (req.query.search) {
+    const regex = new RegExp(escapeRegex(req.query.search), "gi");
+    Trail.find({ name: regex }, function(err, allTrails) {
+      if (err) {
+        console.log(err);
+      } else {
+        if (allTrails.length < 1) {
+          noMatch = "Sorry, no trails found :( please try search again";
+        }
+        //render that trail
+        res.render("trails/index", {
+          trails: allTrails,
+          page: "trails",
+          noMatch: noMatch
+        });
+      }
+    });
+  } else {
+    //get all trails from db
+    Trail.find({}, function(err, allTrails) {
+      if (err) {
+        console.log(err);
+      } else {
+        //render that file
+        res.render("trails/index", {
+          trails: allTrails,
+          page: "trails",
+          noMatch: noMatch
+        });
+      }
+    });
+  }
 });
 
 //CREATE - add new trail to the db
-router.post("/", middleware.isAdmin, upload.single('image'), function(req, res){
-	cloudinary.v2.uploader.upload(req.file.path, function(err, result){
-		//add cloudinary url for img to the trail object under img property
-		req.body.trail.image = result.secure_url;
-		// add image's public id to trail object
-		req.body.trail.imageId = result.public_id;
-		//add author to trail
-		req.body.trail.author = {
-			id: req.user._id,
-			username: req.user.username
-		}
-		//req.body.trail contains all img, desc, name, author, etc bc of the way its set up in trails/new.ejs
-		Trail.create(req.body.trail, function(err, trail){
-			if (err) {
-				req.flash("error", err.message);
-				return res.redirect("back");
-			}
-			res.redirect("/trails/" + trail.id);
-		});
-	});
- });
+router.post("/", middleware.isAdmin, upload.single("image"), function(
+  req,
+  res
+) {
+  cloudinary.v2.uploader.upload(req.file.path, function(err, result) {
+    //add cloudinary url for img to the trail object under img property
+    req.body.trail.image = result.secure_url;
+    // add image's public id to trail object
+    req.body.trail.imageId = result.public_id;
+    //add author to trail
+    req.body.trail.author = {
+      id: req.user._id,
+      username: req.user.username
+    };
+    //req.body.trail contains all img, desc, name, author, etc bc of the way its set up in trails/new.ejs
+    Trail.create(req.body.trail, function(err, trail) {
+      if (err) {
+        req.flash("error", err.message);
+        return res.redirect("back");
+      }
+      res.redirect("/trails/" + trail.id);
+    });
+  });
+});
 
 //NEW - display form to add new trail
-router.get("/new", middleware.isAdmin, function(req, res){
-	res.render("trails/new"); 
+router.get("/new", middleware.isAdmin, function(req, res) {
+  res.render("trails/new");
 });
 
 //SHOW - display info for specific trail
-router.get("/:id", function(req, res){
-	//find trail with specified ID
-	//req.params.id is the id that's generated by/stored in mongoose
-	//populate.exec displays the seeded comments correctly bc it's just an array of obejct ID's and not the actual comments
-	Trail.findById(req.params.id).populate("reviews").exec(function(err, foundTrail){
-		if (err){
-			console.log(err);
-		} else{
-			//render the show template page
-			res.render("trails/show", {trail: foundTrail});
-		}
-	});
+router.get("/:id", function(req, res) {
+  //find trail with specified ID
+  //req.params.id is the id that's generated by/stored in mongoose
+  //populate.exec displays the seeded comments correctly bc it's just an array of obejct ID's and not the actual comments
+  Trail.findById(req.params.id)
+    .populate("comments")
+    .populate({
+      path: "reviews",
+      options: { sort: { createdAt: -1 } }
+    })
+    .exec(function(err, foundTrail) {
+      if (err) {
+        console.log(err);
+      } else {
+        //render the show page for the trail
+        res.render("trails/show", { trail: foundTrail });
+      }
+    });
 });
 
-//EDIT route - display form with trail info 
-router.get("/:id/edit", middleware.checkPostOwner, function(req, res){
-	Trail.findById(req.params.id, function(err, foundTrail){
-		res.render("trails/edit", {trail: foundTrail});
-	});
+//EDIT route - display form with trail info
+router.get("/:id/edit", middleware.checkPostOwner, function(req, res) {
+  Trail.findById(req.params.id, function(err, foundTrail) {
+    res.render("trails/edit", { trail: foundTrail });
+  });
 });
 
 //UPDATE route - send updated trail info
-router.put("/:id", middleware.checkPostOwner, upload.single('image'), function(req, res){
-	//find and update the trail
-	Trail.findById(req.params.id, async function(err, trail){
-		if(err){
-			req.flash("error", err.message);s
-			res.redirect("back");
-		} else {
-			if (req.file) {
-				try {
-					await cloudinary.v2.uploader.destroy(trail.imageId);
-					var result = await cloudinary.v2.uploader.upload(req.file.path);
-					trail.imageId = result.public_id;
-					trail.image = result.secure_url;
-				} catch(err) {
-					req.flash("error", err.message);
-					return res.redirect("back");
-				}
-			}
-			//update name, desc, elev, dist whether it was changed or not
-			trail.name = req.body.trail.name;
-			trail.description = req.body.trail.description;
-			trail.distance = req.body.trail.distance;
-			trail.elevation = req.body.trail.elevation;
-			//save trail in the database to update
-			trail.save();
-			//redirect back to show page
-			req.flash("success", "Successfully updated trail");
-			res.redirect("/trails/" + req.params.id);
-		}
-	})
+router.put("/:id", middleware.checkPostOwner, upload.single("image"), function(
+  req,
+  res
+) {
+  /*
+	only use the below line if you want to reset the rating after updating something important 
+	delete req.body.trail.rating;
+	*/
+  //find and update the trail
+  Trail.findById(req.params.id, async function(err, trail) {
+    if (err) {
+      req.flash("error", err.message);
+      res.redirect("back");
+    } else {
+      if (req.file) {
+        try {
+          await cloudinary.v2.uploader.destroy(trail.imageId);
+          var result = await cloudinary.v2.uploader.upload(req.file.path);
+          trail.imageId = result.public_id;
+          trail.image = result.secure_url;
+        } catch (err) {
+          req.flash("error", err.message);
+          return res.redirect("back");
+        }
+      }
+      //update name, desc, elev, dist whether it was changed or not
+      trail.name = req.body.trail.name;
+      trail.description = req.body.trail.description;
+      trail.distance = req.body.trail.distance;
+      trail.elevation = req.body.trail.elevation;
+      trail.rating = req.body.trail.rating; //huhhhh???
+      //save trail in the database to update
+      trail.save();
+      //redirect back to show page
+      req.flash("success", "Successfully updated trail");
+      res.redirect("/trails/" + req.params.id);
+    }
+  });
 });
 
 //DESTROY - delete trail
-router.delete("/:id", middleware.checkPostOwner, function(req, res){
-	Trail.findById(req.params.id, async function(err, trail){
-		if(err){
-			req.flash("error", err.message);
-			return res.redirect("/trails");
-		}
-		try {
-			await cloudinary.v2.uploader.destroy(trail.imageId);
-			trail.remove();
-			req.flash("success", "Successfully deleted trail");
-			res.redirect("/trails/" + req.params.id);
-		} catch(err) {
-			if(err){
-				req.flash("error", err.message);
-				res.redirect("/trails/" + req.params.id);
-			}	
-		}
-	});
+router.delete("/:id", middleware.checkPostOwner, function(req, res) {
+  Trail.findById(req.params.id, async function(err, trail) {
+    if (err) {
+      req.flash("error", err.message);
+      return res.redirect("/trails");
+    }
+    try {
+      await cloudinary.v2.uploader.destroy(trail.imageId);
+
+      //deletes all comments associated with specified trail
+      Comment.remove({ _id: { $in: trail.comments } }, function(err) {
+        if (err) {
+          console.log(err);
+          return res.redirect("/trails");
+        }
+        //deletes all comments associated with specified trail
+        Review.remove({ _id: { $in: trail.reviews } }, function(err) {
+          if (err) {
+            console.log(err);
+            return res.redirect("/trails");
+          }
+          trail.remove();
+          req.flash("success", "Successfully deleted trail");
+          res.redirect("/trails/");
+        });
+      });
+    } catch (err) {
+      if (err) {
+        req.flash("error", err.message);
+        res.redirect("/trails/" + req.params.id);
+      }
+    }
+  });
 });
 
 //regex for fuzzy search
 function escapeRegex(text) {
-    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-};
-
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+}
 
 module.exports = router;

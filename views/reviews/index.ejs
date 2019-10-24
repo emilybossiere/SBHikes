@@ -1,50 +1,11 @@
 <% include ../partials/header %>
 
-<div class="row justify-content-center">
-  <div class="col-md-9">
-    <div class="card mb-3">
-      <img
-        class="card-img-top"
-        src="<%= trail.image %>"
-        alt="<%= trail.name %>"
-      />
-      <div class="card-body">
-        <h5 class="card-title">More About <%= trail.name %></h5>
-        <p class="card-text"><%= trail.description %></p>
-        <p><strong>Elevation Gain:</strong> <%= trail.elevation %> feet</p>
-        <p><strong>Round Trip Distance:</strong> <%= trail.distance %> miles</p>
-        <p>
-          <em
-            >Submitted by:
-            <a href="/users/<%= trail.author.id %>"
-              ><%= trail.author.username %></a
-            >, <%= moment(trail.createdAt).fromNow() %>
-          </em>
-        </p>
-        <% if(currentUser && currentUser.isAdmin){ %>
-        <a class="btn btn-warning" href="/trails/<%= trail._id %>/edit">Edit</a>
-        <form
-          class="delete-form"
-          action="/trails/<%= trail._id %>?_method=DELETE"
-          method="POST"
-        >
-          <button class="btn btn-danger">
-            Delete
-          </button>
-        </form>
-        <% } %>
-      </div>
-    </div>
-
-    <div class="card mb-3">
-      <div class="card-body">
-        <div class="text-right">
-          <a class="btn btn-success" href="/trails/<%= trail._id %>/reviews/new"
-            >Add a Review</a
-          >
-        </div>
-        <hr />
-        <div class="card-text">
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <h1 style="text-align: center">Review Page: <%= trail.name %></h1>
+      <div class="thumbnail">
+        <div class="caption-full">
           <% if (trail.rating === 0) { %>
           <h5>
             <em>No reviews yet.</em>
@@ -70,9 +31,9 @@
             Current trail rating:
             <strong><%= trail.rating.toFixed(2) %></strong>
           </p>
-          <h4>Latest reviews for this trail:</h4>
+          <h4>All reviews for this trail:</h4>
           <hr style="margin-top: 0;" />
-          <% trail.reviews.slice(0, 5).forEach(function(review){ %>
+          <% trail.reviews.forEach(function(review){ %>
           <div class="row">
             <div class="col-md-3">
               <%- '<span class="fa fa-star checked"></span
@@ -81,16 +42,14 @@
               <div>
                 Review by: <strong><%= review.author.username %></strong>
               </div>
-              <span class="add-space"
-                ><em><%= review.updatedAt.toDateString() %></em></span
-              >
+              <span><em><%= review.updatedAt.toDateString() %></em></span>
             </div>
             <div class="col-md-9">
               <p style="text-align: justify; word-wrap: break-word;">
                 <%= review.text %>
               </p>
-              <% if(currentUser && review.author.id.equals(currentUser._id) ||
-              currentUser && currentUser.isAdmin){ %>
+              <% if(currentUser && review.author.id.equals(currentUser._id ||
+              currentUser && currentUser.isAdmin)){ %>
               <a
                 class="btn btn-sm btn-warning"
                 href="/trails/<%=trail._id %>/reviews/<%=review._id %>/edit"
@@ -111,20 +70,25 @@
             </div>
           </div>
           <hr />
-          <% }); %>
-          <div style="margin-bottom: 10px;">
-            <h4>
-              <a href="/trails/<%= trail._id %>/reviews"
-                ><i class="fa fa-search" aria-hidden="true"></i> See all
-                reviews</a
-              >
-            </h4>
+          <% }); %> <% } %>
+          <div>
+            <a
+              class="btn btn-primary <% if (currentUser && trail.reviews.some(function (review) {return review.author.id.equals(currentUser._id)})) { %> disabled <% } %>"
+              href="/trails/<%= trail._id %>/reviews/new"
+            >
+              Write a New Review</a
+            >
           </div>
-          <% } %>
+          <div style="margin-top: 10px;">
+            <a class="btn btn-outline-dark" href="/trails/<%= trail._id %>"
+              ><i class="fa fa-arrow-left"></i> Go back</a
+            >
+          </div>
         </div>
       </div>
     </div>
   </div>
-
-  <% include ../partials/footer %>
+  <!--Review section-->
 </div>
+
+<% include ../partials/footer %>

@@ -1,32 +1,37 @@
 <% include ../partials/header %>
 
 <div class="row">
-	<div class="col-md-4">
-		<h1>
-		<%= user.firstName + " " + user.lastName %>
-		</h1>
-		<h4>
-			<%= user.username %>
-		</h4>
-		
-		<p>
-			Boudin sirloin bacon, pancetta picanha jowl pork ham landjaeger sausage drumstick prosciutto. Boudin bresaola turkey capicola bacon pork loin drumstick pork chop t-bone kevin.
-		</p>
-		<p>
-			Chicken beef andouille jerky. Sausage beef meatball, bacon pancetta turducken hamburger andouille. T-bone ribeye kielbasa, salami sirloin ground round swine pork loin meatball alcatra spare ribs kevin bresaola. Picanha frankfurter strip steak tail, spare ribs pancetta tenderloin flank ham hock.
-		</p>
-		
-	</div>
-	<div class="col-md-8">
-		<h3>
-			<%= user.firstName %> has left reviews for...
-		</h3>
-		<ul>
-			<% trails.forEach(function(trail){ %>
-				<li><a href="/trails/<%= trail.id %>"><%= trail.name %></a></li>
-			<% }); %>
-		</ul>
-	</div>
+  <div class="col-md-4">
+    <h1>
+      <%= user.firstName + " " + user.lastName %>
+    </h1>
+    <h4>
+      <%= user.username %>
+    </h4>
+
+    <p>
+      Boudin sirloin bacon, pancetta picanha jowl pork ham landjaeger sausage
+      drumstick prosciutto. Boudin bresaola turkey capicola bacon pork loin
+      drumstick pork chop t-bone kevin.
+    </p>
+    <p>
+      Chicken beef andouille jerky. Sausage beef meatball, bacon pancetta
+      turducken hamburger andouille. T-bone ribeye kielbasa, salami sirloin
+      ground round swine pork loin meatball alcatra spare ribs kevin bresaola.
+      Picanha frankfurter strip steak tail, spare ribs pancetta tenderloin flank
+      ham hock.
+    </p>
+  </div>
+  <div class="col-md-8">
+    <h3>
+      <%= user.firstName %> has left reviews for...
+    </h3>
+    <ul>
+      <% trails.forEach(function(trail){ %>
+      <li><a href="/trails/<%= trail.id %>"><%= trail.name %></a></li>
+      <% }); %>
+    </ul>
+  </div>
 </div>
 
 <% include ../partials/footer %>
