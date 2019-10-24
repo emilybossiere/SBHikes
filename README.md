@@ -15,6 +15,7 @@ A Yelp-based website for rating and reviewing hiking trails of Santa Barbara cre
 - Authentication and authorization
 - Resetting password via email
 - Upload images when creating new trails with [cloudinary](https://cloudinary.com/)
+- Search for trails
 
 ## Credits
 Huge shoutout to [Ian Schoonover](https://github.com/nax3t) for image upload feature and [Zarko Maslaric](https://github.com/zarkomaslaric/) for star rating feature!!
