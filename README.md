@@ -2,10 +2,10 @@
 A Yelp-based website for rating and reviewing hiking trails of Santa Barbara created to practice RESTful routing.
 
 ## Technologies Used
-- Node.js
-- MongoDB
-- Mongoose
-- Express.js
+- Node.js 10.16.3
+- MongoDB 4.0.12
+- Mongoose 5.7.3
+- Express.js 4.17.1
 - Cloudinary
 - Bootstrap 4
 - Heroku for deployment
